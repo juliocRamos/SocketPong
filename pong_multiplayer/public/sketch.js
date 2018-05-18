@@ -1,41 +1,69 @@
 var p;
 var b;
+var players = [];
 var socket;
 var balls = [];
 //var a;
 var lastPos;
-var go = false;
+var go = false;;
+var counter = 0; // numero de clientes conectados
 function setup(){
     socket = io.connect('http://localhost:3000');
     createCanvas(750,600);
-    p = new Player();
+    //p = new Player();
     b = new Ball();
     /*for(var i = 0; i < 4; i++){
       balls[i] = new Ball();
-    }
-    a = new Ai();*/
-    var data = {
-      id: socket.id,
-    }
-    socket.emit('start', data);
+    }*/
+    //a = new Ai();
+
+    /*
+      Verifica o número de conexões e define
+      os lados do cliente na tela
+    */
+    socket.on('getCounter', function(data){
+      counter = data;
+      if (p === undefined) {
+        if (counter % 2 === 0)
+          p = new Player(0);
+         else
+          p = new Player(width);
+      }
+      var data = {
+        x:p.x,
+        y:p.y,
+        v:p.v,
+        w:p.w,
+        h:p.h,
+        p:p.p,
+      };
+      socket.emit('start', data);
+      if (counter === 2) {
+        go = true;
+      }
+    });
+    socket.on('heartBeat', function(data){
+      players = data;
+    });
 }
 
 function draw(){
-    background(0);
-    rect(width/2,0,10,600)
-    textSize(48);
-    fill(0, 102, 153);
-    text(p.points, 30, 40);
-    //text(a.points, width - 80, 40);
+  background(0);
+  rect(width/2,0,10,600)
+  textSize(48);
+  fill(0, 102, 153);
+  //text(p.points, 30, 40);
+  //text(a.points, width - 80, 40);
+  if (go === true) {
     p.show();
     p.move(b);
     b.show();
     /*a.show();
     a.move(b);*/
     b.move();
-    /*if(b.collision(p))
+    if(b.collision(p))
       b.xv = 5;
-    if(b.collision(a))
+    /*if(b.collision(a))
       b.xv = -5;
     if(b.x < 0){
       a.points++;
@@ -43,8 +71,26 @@ function draw(){
     }*/
     if(b.x > width){
         p.points++;
-        throwBall();
+        //throwBall();
     }
+    for (var i = 0; i < players.length; i++) {
+      var id = players[i].id;
+      if (id !== socket.id) {
+        fill(255,0,0);
+        rectMode(CENTER);
+        rect(players[i].x, players[i].y, players[i].w, players[i].h);
+      }
+    }
+    var data = {
+      x:p.x,
+      y:p.y,
+      v:p.v,
+      w:p.w,
+      h:p.h,
+      p:p.p,
+    };
+    socket.emit('update', data); // atualiza os dados das coordenadas no servidor
+  }
 }
 
 /*function throwBall(){

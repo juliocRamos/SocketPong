@@ -1,5 +1,5 @@
-function Player(){
-   this.x = 0;
+function Player(x){
+   this.x = x;
    this.y = height/2;
    this.velocityy = 4;
    this.w = 20;
@@ -12,12 +12,9 @@ function Player(){
    }
 
    this.move = function(b){
-     //if(b.x < width/2){
       if(p.y < mouseY)
        p.y += p.velocityy;
      else if(p.y > mouseY)
        p.y -= p.velocityy;
      }
-   //}
-
 }
